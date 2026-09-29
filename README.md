@@ -210,6 +210,16 @@ The first Hindsight startup downloads its embedded PostgreSQL and local retrieva
 curl --fail http://localhost:8888/health
 ```
 
+Start the frontend through Vite (do not open `apps/web/index.html` directly as
+`file://`; browser module loading will be blank in that mode):
+
+```bash
+npm --prefix apps/web install
+npm --prefix apps/web run dev -- --host 127.0.0.1
+```
+
+Then open the localhost URL printed by Vite, usually `http://127.0.0.1:5173`.
+
 PostgreSQL data persists in the `dealmind_postgres_data` volume. Hindsight owns its own persistent embedded PostgreSQL volume, `hindsight_data`, as recommended by its self-hosted distribution. Ollama remains a host service at `http://localhost:11434` and is exposed to Hindsight through Docker Desktop's `host.docker.internal` bridge.
 
 Verify the API's dependency checks after startup:
