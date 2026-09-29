@@ -9,4 +9,8 @@ export default defineConfig({
     allowedHosts: ["wet-bobcats-beg.loca.lt"],
     proxy: { "/api": "http://127.0.0.1:8000" },
   },
+  preview: {
+    allowedHosts: ["lemon-forks-shine.loca.lt", "tough-crews-love.loca.lt"],
+    proxy: { "/api": "http://127.0.0.1:8000" },
+  },
 });
