@@ -24,10 +24,13 @@ local services:
 - Temporal answers can include a `temporal_insight` object. The backend validates
   that previous and current citations come from distinct dated interactions in
   chronological order.
-- The frontend is still a package placeholder. No dashboard or frontend routes
-  have been implemented yet.
+- The frontend now includes Overview, Deals, Memory, and Ask DealMind views,
+  backed by the existing API. Navigation is local React state.
+- Deal creation, interaction ingestion, question answering, assessment generation,
+  source expansion, and evidence inspection are interactive.
+- Intro Studio and focus mode support recording. See `docs/RECORDING.md`.
 
-The backend now exposes dashboard data for the next UI phase:
+The frontend consumes these dashboard endpoints:
 
 ```http
 GET /api/deals?limit=50&offset=0&stage=evaluation
@@ -228,26 +231,24 @@ Response shape:
 }
 ```
 
-This endpoint exists for the Deal Detail view. The full risk engine and richer
-deal list endpoints are not complete yet, so build the UI around loading,
-success, insufficient-history, and retryable-error states.
+This endpoint drives the overview's assessment and next-action cards. It also
+returns `risk_score` and `risk_factors`. Its keyword-based score is a heuristic,
+not a loss probability; the UI states this limitation. Loading, insufficient
+history, and retryable dependency errors have separate presentations.
 
 ## Frontend scope
 
-Build the enterprise revenue-intelligence shell first:
+Implemented frontend:
 
-1. Dashboard shell with service status, deal health summary, recent activity,
-   and a clear entry point to Acme Enterprise.
-2. Deals view with a deal list. Until a list endpoint exists, use the seeded
-   Acme deal as the initial detail route and keep the data client isolated so a
-   future `GET /api/deals` can replace it cleanly.
-3. Deal Detail with company, value, stage, stakeholders/timeline placeholders,
-   Ask panel, risk card, next-action card, and evidence drawer.
+1. Overview with memory service status and Acme selected when available.
+2. Deals view with API pagination, search, and actual pipeline totals.
+3. Deal Detail with company, value, stage, stakeholders and timeline from the API,
+   Ask panel, assessment card, next-action card, and evidence dialog.
 4. Ask DealMind interaction that displays the answer, memory-used state,
    temporal insight when present, and no more than five evidence cards.
-5. Memory Explorer drawer/page showing memory ID, source interaction/document,
-   date, and fact text. It should link back to the interaction when the source
-   ID is available.
+5. Memory page showing source interactions and retention state; evidence dialogs
+   show recalled memory IDs, source metadata, dates, and fact text.
+6. Create-deal and ingest-interaction forms, Intro Studio, and recording focus mode.
 
 Keep API calls in a typed client module. Use React Query or a small equivalent
 for loading/error/cache state, Axios for HTTP, and the existing TypeScript/Vite

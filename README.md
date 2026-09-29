@@ -6,8 +6,19 @@ DealMind is a local-first deal intelligence agent that gets more useful as it ac
 
 The backend vertical slice and cross-time memory proof are complete and verified
 end-to-end. The repository now also contains dashboard-ready deal, timeline,
-stakeholder, and deterministic risk endpoints. The frontend has a production
-build/test harness; the Deal Detail UI is the next implementation phase.
+stakeholder, and deterministic risk endpoints. A working React frontend now
+connects the deal overview, searchable deal list, questions, assessments,
+stakeholders, source timeline, and evidence inspection to the live API.
+
+The interface includes a recording focus mode, three Intro Studio title frames,
+and a reusable SVG brand mark. See [the recording guide](docs/RECORDING.md).
+Frontend verification: `npm --workspace @dealmind/web test` (9 tests) and
+`npm run build:web` (TypeScript plus production build).
+
+Current limitations: the Memory view lists source interactions, not an exhaustive
+Hindsight memory bank. Actual recalled facts are accessible through answer evidence.
+Risk scoring still uses keyword signals, can count resolved concerns, and is not
+a calibrated loss probability. Cross-deal retrieval is not implemented.
 
 ### Completed
 
@@ -167,7 +178,9 @@ model without thinking-level support.
 3. **First vertical slice (complete):** retain, recall, and evidence-backed answers.
 4. **Cross-time proof (complete):** later interactions change the supported answer.
 5. **Backend expansion (complete):** historical demo data, deal/timeline/stakeholder APIs, deterministic risk signals, and evaluation coverage.
-6. **Next:** implement the enterprise Deal Detail frontend and Memory Explorer.
+6. **Frontend (implemented):** account overview, questions with evidence, source
+   explorer, deal list, interaction forms, and recording controls.
+7. **Next:** validate the demo narrative and improve risk semantics and cross-deal retrieval.
 
 The evaluation suite lives in [`evals/`](evals/README.md). Run it against a
 live seeded API from a host with Docker access:
@@ -182,7 +195,7 @@ python3.11 evals/run_api_eval.py \
 ```text
 apps/
   api/            FastAPI service
-  web/            Frontend package placeholder
+  web/            React frontend, interaction tests, and recording assets
 docs/             Architecture and operational notes
 docker-compose.yml
 ```
