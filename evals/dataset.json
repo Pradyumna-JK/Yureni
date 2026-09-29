@@ -1,0 +1,88 @@
+{
+  "version": "0.1.0",
+  "description": "DealMind Acme memory and intelligence regression questions",
+  "cases": [
+    {
+      "id": "ravi-current-priority",
+      "endpoint": "ask",
+      "question": "What does Ravi care about now?",
+      "must_contain_any": ["implementation", "capacity", "ownership", "migration"],
+      "must_not_contain": ["insufficient historical context"],
+      "max_evidence": 5,
+      "require_memory": true
+    },
+    {
+      "id": "ravi-original-gate",
+      "endpoint": "ask",
+      "question": "What was Ravi's original deployment concern?",
+      "must_contain_all": ["November"],
+      "must_contain_any": ["deployment", "integration", "90-day", "90 day"],
+      "max_evidence": 5,
+      "require_memory": true
+    },
+    {
+      "id": "ravi-temporal-change",
+      "endpoint": "ask",
+      "question": "What does Ravi care about now, and how has his position changed over time?",
+      "must_contain_any": ["shift", "changed", "moved", "now", "remaining"],
+      "max_evidence": 5,
+      "require_memory": true,
+      "require_temporal_insight": true
+    },
+    {
+      "id": "ravi-security",
+      "endpoint": "ask",
+      "question": "What security capabilities did Ravi require?",
+      "must_contain_any": ["sso", "audit", "data resid", "security"],
+      "max_evidence": 5,
+      "require_memory": true
+    },
+    {
+      "id": "sarah-business-case",
+      "endpoint": "ask",
+      "question": "What did Sarah need before supporting the project?",
+      "must_contain_any": ["roi", "payback", "pricing", "budget"],
+      "max_evidence": 5,
+      "require_memory": true
+    },
+    {
+      "id": "procurement-gate",
+      "endpoint": "ask",
+      "question": "What must happen before Acme can begin procurement?",
+      "must_contain_any": ["finance", "security", "commercial", "pricing"],
+      "max_evidence": 5,
+      "require_memory": true
+    },
+    {
+      "id": "competitor-context",
+      "endpoint": "ask",
+      "question": "Which competitor was Acme evaluating and how did it affect the deal?",
+      "must_contain_any": ["nimbusiq", "competitor", "lower", "price", "cost"],
+      "max_evidence": 5,
+      "require_memory": true
+    },
+    {
+      "id": "deal-intelligence",
+      "endpoint": "intelligence",
+      "must_contain_any": ["implementation", "capacity", "security", "pricing", "ownership"],
+      "max_evidence": 5,
+      "require_evidence": true
+    },
+    {
+      "id": "evidence-budget",
+      "endpoint": "ask",
+      "question": "What did Ravi care about?",
+      "must_contain_any": ["deployment", "implementation", "renewal", "integration"],
+      "max_evidence": 5,
+      "require_memory": true,
+      "require_traceable_evidence": true
+    },
+    {
+      "id": "unsupported-claim-abstention",
+      "endpoint": "ask",
+      "question": "What exact discount did Acme approve?",
+      "must_contain_any": ["insufficient", "no record", "no evidence", "unknown"],
+      "max_evidence": 5
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "dealmind",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Persistent-memory deal intelligence agent",
+  "workspaces": [
+    "apps/web",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm --workspace @dealmind/web run dev",
+    "build:web": "npm --workspace @dealmind/web run build",
+    "typecheck": "npm --workspace @dealmind/web run typecheck"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

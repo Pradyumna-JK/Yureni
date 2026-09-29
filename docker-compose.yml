@@ -1,0 +1,65 @@
+name: dealmind
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dealmind}
+      POSTGRES_USER: ${POSTGRES_USER:-dealmind}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports:
+      - "5432:5432"
+    volumes:
+      - dealmind_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  hindsight:
+    image: ghcr.io/vectorize-io/hindsight:latest
+    environment:
+      HINDSIGHT_API_LLM_PROVIDER: ollama
+      HINDSIGHT_API_LLM_BASE_URL: ${OLLAMA_DOCKER_BASE_URL:-http://host.docker.internal:11434/v1}
+      # Hindsight performs strict, structured fact extraction. Keep this independently
+      # configurable from DealMind's answer model; GPT-OSS is still the default answer model.
+      HINDSIGHT_API_LLM_MODEL: ${HINDSIGHT_LLM_MODEL:-gemma3:4b}
+      HINDSIGHT_API_WORKER_ID: dealmind-local
+      HINDSIGHT_API_MODEL_INIT_TIMEOUT: 900
+      HINDSIGHT_API_LLM_TIMEOUT: 600
+      HINDSIGHT_API_LLM_TEMPERATURE_RETAIN: 0.0
+    ports:
+      - "8888:8888"
+      - "9999:9999"
+    volumes:
+      - hindsight_data:/home/hindsight/.pg0
+    shm_size: 1g
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./apps/api
+    environment:
+      DEALMIND_ENV: ${DEALMIND_ENV:-development}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-dealmind}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-dealmind}
+      HINDSIGHT_BASE_URL: http://hindsight:8888
+      HINDSIGHT_API_KEY: ${HINDSIGHT_API_KEY:-}
+      OLLAMA_BASE_URL: ${OLLAMA_API_DOCKER_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-gpt-oss:20b}
+      OLLAMA_NUM_CTX: ${OLLAMA_NUM_CTX:-16384}
+      OLLAMA_REASONING_EFFORT: ${OLLAMA_REASONING_EFFORT-low}
+      OLLAMA_FALLBACK_MODEL: ${OLLAMA_FALLBACK_MODEL:-gemma3:4b}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      hindsight:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  dealmind_postgres_data:
+  hindsight_data:

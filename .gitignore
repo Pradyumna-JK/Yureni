@@ -1,0 +1,31 @@
+# Environment and local configuration
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Node / Vite
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Test and coverage output
+coverage/
+htmlcov/
+
+# Editors and operating system files
+.DS_Store
+.idea/
+.vscode/
+
+# Local data and uploads
+data/
+uploads/
