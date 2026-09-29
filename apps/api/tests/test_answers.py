@@ -5,7 +5,7 @@ import pytest
 
 from app.services.answers import answer_question, as_evidence
 from app.services.llm import InvalidLLMResponseError, OllamaService
-from app.services.memory import MemoryEvidence
+from app.services.hindsight_memory import MemoryEvidence
 
 
 def memory(key: str, day: int, text: str = "A requirement") -> MemoryEvidence:

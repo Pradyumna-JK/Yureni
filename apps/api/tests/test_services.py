@@ -3,7 +3,7 @@ import json
 import pytest
 
 from app.services.llm import InvalidLLMResponseError, OllamaService
-from app.services.memory import HindsightMemoryService, MemoryEvidence, MemoryUnavailableError
+from app.services.hindsight_memory import HindsightMemoryService, MemoryEvidence, MemoryUnavailableError
 
 
 class FakeResponse:
@@ -56,7 +56,7 @@ async def test_memory_health_exposes_unavailability(monkeypatch: pytest.MonkeyPa
 
             raise httpx.ConnectError("offline")
 
-    import app.services.memory as memory_module
+    import app.services.hindsight_memory as memory_module
 
     monkeypatch.setattr(memory_module.httpx, "AsyncClient", lambda **_: FailingClient())
 

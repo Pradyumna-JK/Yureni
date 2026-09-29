@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.deals import AskResponse, Evidence, TemporalInsight
 from app.services.llm import InvalidLLMResponseError, OllamaService
-from app.services.memory import MemoryEvidence
+from app.services.hindsight_memory import MemoryEvidence
 
 MAX_EVIDENCE = 5
 

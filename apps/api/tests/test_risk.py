@@ -1,4 +1,4 @@
-from app.services.memory import MemoryEvidence
+from app.services.hindsight_memory import MemoryEvidence
 from app.services.risk import health_for_score, score_risk
 
 

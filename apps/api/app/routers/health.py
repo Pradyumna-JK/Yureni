@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings, get_settings
 from app.database import get_db
-from app.services.memory import HindsightMemoryService, MemoryUnavailableError
+from app.services.hindsight_memory import HindsightMemoryService, MemoryUnavailableError
 
 router = APIRouter(tags=["health"])
 

@@ -274,7 +274,7 @@ stack. Do not make the frontend call Hindsight or Ollama directly.
 | --- | --- |
 | `apps/api/app/routers/deals.py` | Deal, interaction, ask, and intelligence routes |
 | `apps/api/app/schemas/deals.py` | Public request/response schemas |
-| `apps/api/app/services/memory.py` | Hindsight provider boundary and evidence mapping |
+| `apps/api/app/services/hindsight_memory.py` | Hindsight provider boundary and evidence mapping |
 | `apps/api/app/services/answers.py` | Citation selection and temporal validation |
 | `apps/api/app/services/llm.py` | Ollama provider boundary and JSON repair |
 | `apps/api/scripts/seed_acme.py` | Synthetic initial Acme history |

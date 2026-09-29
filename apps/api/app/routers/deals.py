@@ -23,7 +23,7 @@ from app.schemas.deals import (
 )
 from app.services.llm import InvalidLLMResponseError, LLMUnavailableError, OllamaService
 from app.services.answers import answer_question, as_evidence
-from app.services.memory import HindsightMemoryService, MemoryEvidence, MemoryUnavailableError
+from app.services.hindsight_memory import HindsightMemoryService, MemoryEvidence, MemoryUnavailableError
 from app.services.risk import health_for_score, score_risk
 
 router = APIRouter(prefix="/api/deals", tags=["deals"])

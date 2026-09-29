@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from app.database import get_db
 from app.main import app
 from app.routers import deals
-from app.services.memory import HindsightMemoryService, MemoryUnavailableError
+from app.services.hindsight_memory import HindsightMemoryService, MemoryUnavailableError
 
 
 @pytest.mark.asyncio

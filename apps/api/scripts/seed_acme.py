@@ -10,7 +10,7 @@ from sqlalchemy import select
 from app.database import SessionLocal
 from app.models import Company, Deal, Interaction, Stakeholder
 from app.routers.deals import bank_id, format_memory_content
-from app.services.memory import HindsightMemoryService, MemoryUnavailableError
+from app.services.hindsight_memory import HindsightMemoryService, MemoryUnavailableError
 from app.config import get_settings
 
 

@@ -1,6 +1,6 @@
 """Deterministic risk signals used to keep deal health explainable."""
 
-from app.services.memory import MemoryEvidence
+from app.services.hindsight_memory import MemoryEvidence
 
 
 RISK_RULES: tuple[tuple[str, int, str], ...] = (
