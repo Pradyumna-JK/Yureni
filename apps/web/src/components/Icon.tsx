@@ -1,5 +1,7 @@
 export type IconName =
   | "home"
+  | "people"
+  | "spark"
   | "deals"
   | "memory"
   | "chat"
@@ -13,8 +15,13 @@ export type IconName =
   | "clock"
   | "file"
   | "search"
-  | "back";
+  | "back"
+  | "mic"
+  | "volume";
 const paths: Record<IconName, string> = {
+  people:
+    "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Zm5-3a4 4 0 0 1 0 8m1 3a4 4 0 0 1 3 4v2",
+  spark: "m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z",
   home: "m3 10 9-7 9 7v10H3V10Zm6 10v-7h6v7",
   deals: "M4 7h16v13H4V7Zm4 0V4h8v3M4 12h16m-10 0v3h4v-3",
   memory:
@@ -31,6 +38,8 @@ const paths: Record<IconName, string> = {
   file: "M5 3h9l5 5v13H5V3Zm9 0v6h5M8 13h8m-8 4h6",
   search: "m16 16 5 5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z",
   back: "M20 12H4m6-6-6 6 6 6",
+  mic: "M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3ZM5 11a7 7 0 0 0 14 0M12 18v3m-4 0h8",
+  volume: "M4 10v4h4l5 4V6l-5 4H4Zm13-1a4 4 0 0 1 0 6m2-9a8 8 0 0 1 0 12",
 };
 export function Icon({ name, size = 19 }: { name: IconName; size?: number }) {
   return (

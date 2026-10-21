@@ -17,17 +17,35 @@ import { Icon, Mark, type IconName } from "./components/Icon";
 import { Modal } from "./components/Modal";
 import { Intro } from "./components/Intro";
 import { EntryForm } from "./components/EntryForm";
+import { Rosy } from "./components/Rosy";
+import { DealStory, TemporalContext } from "./components/DealStory";
+import { MemoryMap } from "./components/MemoryMap";
+import { CommandCenter } from "./components/CommandCenter";
+import { VoiceAgent } from "./components/VoiceAgent";
 
-type Page = "Overview" | "Deals" | "Memory" | "Ask DealMind";
+type Page =
+  | "Command Center"
+  | "Deal Detail"
+  | "Deals"
+  | "Memory"
+  | "Ask Rosy"
+  | "Voice Agent"
+  | "Timeline"
+  | "Stakeholders"
+  | "Insights";
 const navigation: { name: Page; icon: IconName }[] = [
-  { name: "Overview", icon: "home" },
+  { name: "Command Center", icon: "home" },
   { name: "Deals", icon: "deals" },
   { name: "Memory", icon: "memory" },
-  { name: "Ask DealMind", icon: "chat" },
+  { name: "Timeline", icon: "clock" },
+  { name: "Stakeholders", icon: "people" },
+  { name: "Insights", icon: "spark" },
+  { name: "Voice Agent", icon: "mic" },
+  { name: "Ask Rosy", icon: "chat" },
 ];
 
 export default function App() {
-  const [page, setPage] = useState<Page>("Overview");
+  const [page, setPage] = useState<Page>("Command Center");
   const [deals, setDeals] = useState<Deal[]>([]);
   const [selected, setSelected] = useState("");
   const [loading, setLoading] = useState(true);
@@ -50,6 +68,10 @@ export default function App() {
     null,
   );
   const [evidence, setEvidence] = useState<Evidence[] | null>(null);
+  const [source, setSource] = useState<Interaction | null>(null);
+  const [captured, setCaptured] = useState(false);
+  const [healthOpen, setHealthOpen] = useState(false);
+  const [dbStatus, setDbStatus] = useState("Not checked");
   const [focus, setFocus] = useState(false);
   const [revision, setRevision] = useState(0);
   const requestVersion = useRef(0);
@@ -87,6 +109,7 @@ export default function App() {
   useEffect(() => {
     void refresh();
     void checkMemory();
+    if (window.location.hash === "#voice-agent") setPage("Voice Agent");
   }, []);
   useEffect(() => {
     if (!selected) return;
@@ -130,6 +153,8 @@ export default function App() {
     setTimeline([]);
     setPeople([]);
     setEvidence(null);
+    setSource(null);
+    setCaptured(false);
   }
   async function ask(text: string) {
     if (!selected || busy || text.trim().length < 3) return;
@@ -183,6 +208,25 @@ export default function App() {
     "What changed over time?",
     "What should I do next?",
   ];
+  const recalledEvidence = [
+    ...(answer?.evidence ?? []),
+    ...(insight?.evidence ?? []),
+  ];
+  function exploreChanges() {
+    setPage("Deal Detail");
+    void ask("What changed over time?");
+  }
+  async function showHealth() {
+    setHealthOpen(true);
+    setDbStatus("Checking…");
+    void checkMemory();
+    try {
+      await api.get("/health/db", { timeout: 10000 });
+      setDbStatus("Connected");
+    } catch {
+      setDbStatus("Unavailable — retry");
+    }
+  }
 
   return (
     <div className={`app-shell ${focus ? "focus-mode" : ""}`}>
@@ -192,7 +236,7 @@ export default function App() {
           className="brand"
           onClick={(e) => {
             e.preventDefault();
-            setPage("Overview");
+            setPage("Command Center");
           }}
         >
           <Mark />
@@ -233,7 +277,7 @@ export default function App() {
                 key={d.id}
                 onClick={() => {
                   choose(d.id);
-                  setPage("Overview");
+                  setPage("Command Center");
                 }}
                 className={`context-link ${selected === d.id ? "selected" : ""}`}
               >
@@ -288,9 +332,9 @@ export default function App() {
           <div className="status-row">
             <span className="eyebrow">DEAL INTELLIGENCE, WITH MEMORY</span>
             <button
-              onClick={() => void checkMemory()}
+              onClick={() => void showHealth()}
               className={`connection ${memoryStatus}`}
-              title="Check memory connection"
+              title="Inspect service connections"
             >
               <span className="status-dot" />
               {memoryStatus === "online"
@@ -307,8 +351,18 @@ export default function App() {
                   "Your next opportunity."
                 ) : page === "Memory" ? (
                   "Nothing gets lost."
-                ) : page === "Ask DealMind" ? (
-                  "Ask with the full picture."
+                ) : page === "Ask Rosy" ? (
+                  "A little more context."
+                ) : page === "Voice Agent" ? (
+                  "Talk to the agent."
+                ) : page === "Timeline" ? (
+                  "The conversations that matter."
+                ) : page === "Stakeholders" ? (
+                  "People behind the decision."
+                ) : page === "Insights" ? (
+                  "Clarity for your next move."
+                ) : page === "Deal Detail" ? (
+                  "Every deal has a story."
                 ) : (
                   <>
                     Every deal has a story
@@ -321,7 +375,9 @@ export default function App() {
                   ? "A clear view of every account, and the conversations behind it."
                   : page === "Memory"
                     ? "Trace your answers back to the conversations that shaped them."
-                    : "Pick up where you left off. Turn your deal history into a clear next step."}
+                    : page === "Voice Agent"
+                      ? "A live voice layer for DealMind memory and customer-facing conversations."
+                    : "Connect what happened before to what matters next."}
               </p>
             </div>
             {page === "Deals" ? (
@@ -341,6 +397,25 @@ export default function App() {
               </button>
             )}
           </section>
+          {captured && (
+            <div className="capture-success" role="status">
+              <Icon name="check" />
+              <div>
+                <strong>Memory captured.</strong>
+                <p>
+                  Hindsight confirmed retention. Rosy can use this interaction
+                  in future answers.
+                </p>
+              </div>
+              <button
+                className="icon-button"
+                aria-label="Dismiss confirmation"
+                onClick={() => setCaptured(false)}
+              >
+                <Icon name="close" />
+              </button>
+            </div>
+          )}
           {loadError && (
             <div role="alert" className="error-box">
               {loadError}
@@ -414,7 +489,7 @@ export default function App() {
                         className="deal-list-card"
                         onClick={() => {
                           choose(d.id);
-                          setPage("Overview");
+                          setPage("Command Center");
                         }}
                       >
                         <div className="card-top">
@@ -443,6 +518,22 @@ export default function App() {
                     <p className="empty-inline">No deals match “{search}”.</p>
                   )}
                 </>
+              ) : page === "Command Center" ? (
+                <CommandCenter
+                  deals={deals}
+                  selected={selected}
+                  onSelect={(id) => {
+                    choose(id);
+                    setPage("Deal Detail");
+                  }}
+                  onAsk={() => setPage("Ask Rosy")}
+                  onOpenPipeline={() => setPage("Deals")}
+                />
+              ) : page === "Voice Agent" ? (
+                <VoiceAgent
+                  deal={deal}
+                  onOpenEvidence={(voiceAnswer) => setEvidence(voiceAnswer.evidence)}
+                />
               ) : (
                 deal && (
                   <>
@@ -478,13 +569,35 @@ export default function App() {
                         <strong>{deal.interaction_count}</strong>
                       </div>
                     </section>
-                    {page !== "Memory" && (
+                    {detailError && (
+                      <div className="error-box" role="alert">
+                        {detailError}
+                        <button onClick={() => setRevision((v) => v + 1)}>
+                          Retry deal history
+                        </button>
+                      </div>
+                    )}
+                    {page === "Deal Detail" && (
+                      <DealStory
+                        timeline={timeline}
+                        loading={detailLoading}
+                        onOpen={setSource}
+                        onChange={exploreChanges}
+                        busy={!!busy}
+                      />
+                    )}
+                    {(page === "Deal Detail" || page === "Ask Rosy") && (
                       <section className="ask-area">
                         <div className="ask-title">
-                          <Mark />
+                          <Rosy />
                           <div>
-                            <h2>What would you like to know?</h2>
-                            <p>Your deal history. A more thoughtful answer.</p>
+                            <span className="eyebrow">
+                              YOUR DEAL MEMORY AGENT
+                            </span>
+                            <h2>Ask Rosy</h2>
+                            <p>
+                              Ask about the deal. Rosy remembers the context.
+                            </p>
                           </div>
                         </div>
                         <form
@@ -496,7 +609,7 @@ export default function App() {
                         >
                           <textarea
                             aria-label="Ask about this deal"
-                            placeholder={`Ask anything about ${deal.company.name}…`}
+                            placeholder={`What would you like to know about ${deal.company.name}?`}
                             value={question}
                             maxLength={2000}
                             onChange={(e) => setQuestion(e.target.value)}
@@ -509,8 +622,8 @@ export default function App() {
                           />
                           <div className="composer-footer">
                             <span>
-                              <Icon name="memory" size={14} /> Answers from deal
-                              memory
+                              <Icon name="memory" size={14} /> Hindsight recall
+                              → Rosy's answer → evidence
                             </span>
                             <button
                               type="submit"
@@ -539,14 +652,18 @@ export default function App() {
                         </div>
                         {busy === "ask" && (
                           <div className="loading-state" role="status">
-                            <span className="spinner" /> Reading deal memory and
-                            preparing an answer. Local reasoning may take a
-                            minute.
+                            <span className="spinner" /> Rosy is requesting deal
+                            memory and preparing an answer. Local reasoning may
+                            take a minute.
                           </div>
                         )}
                         {answer && (
                           <article className="answer-card">
                             <div className="answer-meta">
+                              <div className="agent-label">
+                                <Rosy small />
+                                <strong>Rosy's Answer</strong>
+                              </div>
                               <span className="eyebrow">
                                 {answer.memory_used
                                   ? "ANSWER FROM DEAL MEMORY"
@@ -559,20 +676,18 @@ export default function App() {
                             <h3>{asked}</h3>
                             <p className="answer-text">{answer.answer}</p>
                             {answer.temporal_insight && (
-                              <div className="temporal">
-                                <div>
-                                  <span>THEN</span>
-                                  <p>
-                                    {answer.temporal_insight.previous_state}
-                                  </p>
-                                </div>
-                                <Icon name="chevron" />
-                                <div>
-                                  <span>NOW</span>
-                                  <p>{answer.temporal_insight.current_state}</p>
-                                </div>
-                              </div>
+                              <TemporalContext
+                                insight={answer.temporal_insight}
+                              />
                             )}
+                            {!answer.temporal_insight &&
+                              /chang|over time/i.test(asked) && (
+                                <p className="fine-print">
+                                  No structured previous/current comparison was
+                                  returned. Rosy's answer and its available
+                                  evidence are shown above.
+                                </p>
+                              )}
                             {answer.evidence.length > 0 && (
                               <button
                                 className="evidence-link"
@@ -596,10 +711,22 @@ export default function App() {
                         </span>
                       </div>
                     )}
-                    {page === "Overview" && (
+                    {(page === "Deal Detail" || page === "Memory") && (
+                      <MemoryMap
+                        key={selected}
+                        evidence={recalledEvidence}
+                        company={deal.company.name}
+                        busy={!!busy}
+                        onAsk={() => {
+                          setPage("Ask Rosy");
+                          void ask("What are the key concerns for this deal?");
+                        }}
+                      />
+                    )}
+                    {(page === "Deal Detail" || page === "Insights") && (
                       <>
                         <div className="section-title">
-                          <h2>The deal, at a glance</h2>
+                          <h2>From memory to momentum.</h2>
                           <span className="muted">
                             Context before your next conversation
                           </span>
@@ -607,10 +734,8 @@ export default function App() {
                         <div className="insight-grid">
                           <article className="risk-card">
                             <div className="card-label">
-                              <span className="round-icon">
-                                <Icon name="deals" size={17} />
-                              </span>
-                              <span>Deal assessment</span>
+                              <Rosy small />
+                              <span>Rosy's Insight</span>
                               {insight && (
                                 <span className="badge">
                                   {insight.deal_health === "unknown"
@@ -629,6 +754,16 @@ export default function App() {
                                 ? insight.summary
                                 : "Bring the open questions and potential risks into one view, grounded in your retained deal history."}
                             </p>
+                            {insight && (
+                              <ul
+                                className="risk-signals"
+                                aria-label="Deal signals"
+                              >
+                                {insight.risk_factors.map((factor) => (
+                                  <li key={factor}>{humanize(factor)}</li>
+                                ))}
+                              </ul>
+                            )}
                             {insight && (
                               <p className="fine-print">
                                 Heuristic score: {insight.risk_score}/100 ·{" "}
@@ -661,7 +796,7 @@ export default function App() {
                               <span className="round-icon">
                                 <Icon name="arrow" size={17} />
                               </span>
-                              <span>Your next move</span>
+                              <span>Rosy's next move</span>
                             </div>
                             <h3>
                               {insight
@@ -690,149 +825,167 @@ export default function App() {
                         </div>
                       </>
                     )}
-                    {page !== "Ask DealMind" && (
+                    {!["Ask Rosy", "Insights"].includes(page) && (
                       <div
                         className={
-                          page === "Memory" ? "memory-layout" : "detail-grid"
+                          page === "Memory"
+                            ? "memory-layout"
+                            : `detail-grid ${page === "Timeline" || page === "Stakeholders" ? "single-view" : ""}`
                         }
                       >
-                        <section>
-                          <div className="section-title">
-                            <h2>
-                              {page === "Memory"
-                                ? "Source interactions"
-                                : "The conversation so far"}{" "}
-                              <span>{timeline.length}</span>
-                            </h2>
-                            <Icon name="clock" size={17} />
-                          </div>
-                          {detailError && (
-                            <div className="error-box" role="alert">
-                              {detailError}
-                              <button onClick={() => setRevision((v) => v + 1)}>
-                                Retry
-                              </button>
+                        {page !== "Stakeholders" && (
+                          <section>
+                            <div className="section-title">
+                              <h2>
+                                {page === "Memory"
+                                  ? "Source interactions"
+                                  : "The conversation so far"}{" "}
+                                <span>{timeline.length}</span>
+                              </h2>
+                              <Icon name="clock" size={17} />
                             </div>
-                          )}
-                          {detailLoading ? (
-                            <p role="status" className="empty-inline">
-                              Loading deal history…
-                            </p>
-                          ) : (
-                            <div className="timeline">
-                              {timeline.map((item) => (
-                                <details
-                                  key={item.id}
-                                  className="timeline-item"
-                                >
-                                  <summary>
-                                    <span className="timeline-icon">
-                                      <Icon name="file" size={16} />
-                                    </span>
-                                    <div>
-                                      <span className="event-title">
-                                        {item.subject ||
-                                          humanize(item.interaction_type)}
+                            {detailLoading ? (
+                              <p role="status" className="empty-inline">
+                                Loading deal history…
+                              </p>
+                            ) : (
+                              <div className="timeline">
+                                {timeline.map((item) => (
+                                  <details
+                                    key={item.id}
+                                    className="timeline-item"
+                                  >
+                                    <summary>
+                                      <span className="timeline-icon">
+                                        <Icon name="file" size={16} />
                                       </span>
-                                      <span className="event-meta">
-                                        {dateLabel(item.occurred_at)} <i>·</i>{" "}
-                                        {humanize(item.interaction_type)}
+                                      <div>
+                                        <span className="event-title">
+                                          {item.subject ||
+                                            humanize(item.interaction_type)}
+                                        </span>
+                                        <span className="event-meta">
+                                          {dateLabel(item.occurred_at)} <i>·</i>{" "}
+                                          {humanize(item.interaction_type)}
+                                        </span>
+                                      </div>
+                                      <span
+                                        className={`retention ${item.memory_status === "succeeded" ? "success" : ""}`}
+                                      >
+                                        {item.memory_status === "succeeded"
+                                          ? "Retained"
+                                          : humanize(item.memory_status)}
+                                      </span>
+                                      <Icon name="chevron" size={14} />
+                                    </summary>
+                                    <div className="transcript">
+                                      <p>{item.content}</p>
+                                      <span>
+                                        Source document:{" "}
+                                        {item.memory_document_id ||
+                                          "Not assigned"}
                                       </span>
                                     </div>
-                                    <span
-                                      className={`retention ${item.memory_status === "succeeded" ? "success" : ""}`}
-                                    >
-                                      {item.memory_status === "succeeded"
-                                        ? "Retained"
-                                        : humanize(item.memory_status)}
-                                    </span>
-                                    <Icon name="chevron" size={14} />
-                                  </summary>
-                                  <div className="transcript">
-                                    <p>{item.content}</p>
-                                    <span>
-                                      Source document:{" "}
-                                      {item.memory_document_id ||
-                                        "Not assigned"}
-                                    </span>
-                                  </div>
-                                </details>
-                              ))}
-                              {!timeline.length && !detailError && (
-                                <p className="empty-inline">
-                                  No interactions yet. Add a meeting, email, or
-                                  note to start building context.
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </section>
-                        <section className="people-section">
-                          <div className="section-title">
-                            <h2>
-                              {page === "Memory"
-                                ? "From source to insight"
-                                : "People in the room"}
-                            </h2>
-                          </div>
-                          {page === "Memory" ? (
-                            <div className="memory-explanation">
-                              <Mark large />
-                              <h3>Memory you can inspect.</h3>
-                              <p>
-                                This timeline shows saved source interactions
-                                and their retention status. Ask a question to
-                                inspect the actual Hindsight memories returned
-                                with the answer.
-                              </p>
-                              <button
-                                className="button"
-                                onClick={() => setPage("Ask DealMind")}
-                              >
-                                Ask about this deal{" "}
-                                <Icon name="chevron" size={15} />
-                              </button>
-                              <p className="fine-print">
-                                A saved source is not proof of recall. Only
-                                evidence returned by Hindsight appears as
-                                supporting memory.
-                              </p>
-                            </div>
-                          ) : (
-                            <>
-                              {people.map((person) => (
-                                <div className="person" key={person.id}>
-                                  <span className="person-avatar">
-                                    {person.name
-                                      .split(" ")
-                                      .map((n) => n[0])
-                                      .slice(0, 2)
-                                      .join("")}
-                                  </span>
-                                  <div>
-                                    <strong>{person.name}</strong>
-                                    <span>
-                                      {person.title ||
-                                        person.role ||
-                                        "Stakeholder"}
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                              {!people.length && !detailLoading && (
-                                <p className="empty-inline">
-                                  No stakeholders recorded.
-                                </p>
-                              )}
-                              <div className="quiet-note">
-                                <span className="status-dot" />
-                                <span>
-                                  Context grows with every interaction.
-                                </span>
+                                  </details>
+                                ))}
+                                {!timeline.length && !detailError && (
+                                  <p className="empty-inline">
+                                    No interactions yet. Add a meeting, email,
+                                    or note to start building context.
+                                  </p>
+                                )}
                               </div>
-                            </>
-                          )}
-                        </section>
+                            )}
+                          </section>
+                        )}
+                        {page !== "Timeline" && (
+                          <section className="people-section">
+                            <div className="section-title">
+                              <h2>
+                                {page === "Memory"
+                                  ? "From source to insight"
+                                  : "People in the room"}
+                              </h2>
+                            </div>
+                            {page === "Memory" ? (
+                              <div className="memory-explanation">
+                                <Mark large />
+                                <h3>Memory you can inspect.</h3>
+                                <p>
+                                  This timeline shows saved source interactions
+                                  and their retention status. Ask a question to
+                                  inspect the actual Hindsight memories returned
+                                  with the answer.
+                                </p>
+                                <button
+                                  className="button"
+                                  onClick={() => setPage("Ask Rosy")}
+                                >
+                                  Ask Rosy about this deal{" "}
+                                  <Icon name="chevron" size={15} />
+                                </button>
+                                <p className="fine-print">
+                                  A saved source is not proof of recall. Only
+                                  evidence returned by Hindsight appears as
+                                  supporting memory.
+                                </p>
+                              </div>
+                            ) : (
+                              <>
+                                {people.map((person) => (
+                                  <div className="person" key={person.id}>
+                                    <span className="person-avatar">
+                                      {person.name
+                                        .split(" ")
+                                        .map((n) => n[0])
+                                        .slice(0, 2)
+                                        .join("")}
+                                    </span>
+                                    <div>
+                                      <strong>{person.name}</strong>
+                                      <span>
+                                        {person.title ||
+                                          person.role ||
+                                          "Stakeholder"}
+                                      </span>
+                                    </div>
+                                    <button
+                                      className="person-context"
+                                      aria-label={`View ${person.name}'s context`}
+                                      disabled={!!busy}
+                                      onClick={() => {
+                                        setPage("Ask Rosy");
+                                        void ask(
+                                          `How did ${person.name}'s concerns change over time?`,
+                                        );
+                                      }}
+                                    >
+                                      <Icon name="chevron" size={16} />
+                                    </button>
+                                  </div>
+                                ))}
+                                {!people.length &&
+                                  !detailLoading &&
+                                  !detailError && (
+                                    <p className="empty-inline">
+                                      No stakeholders recorded.
+                                    </p>
+                                  )}
+                                {detailLoading && (
+                                  <p className="empty-inline" role="status">
+                                    Loading stakeholders…
+                                  </p>
+                                )}
+                                <div className="quiet-note">
+                                  <span className="status-dot" />
+                                  <span>
+                                    Context grows with every interaction.
+                                  </span>
+                                </div>
+                              </>
+                            )}
+                          </section>
+                        )}
                       </div>
                     )}
                   </>
@@ -857,22 +1010,77 @@ export default function App() {
           kind={modal}
           deal={deal}
           onClose={() => setModal(null)}
-          onSaved={(id) => {
+          onSaved={(id, retained) => {
             setModal(null);
             if (id) choose(id);
             setRevision((v) => v + 1);
             setInsight(null);
             setAnswer(null);
+            setCaptured(retained === true);
             void refresh();
             void checkMemory();
           }}
         />
       )}
+      {source && (
+        <Modal
+          title={source.subject || humanize(source.interaction_type)}
+          onClose={() => setSource(null)}
+        >
+          <div className="source-overview">
+            <span className="badge">{humanize(source.interaction_type)}</span>
+            <span>{dateLabel(source.occurred_at)}</span>
+            <span className="badge">
+              Memory: {humanize(source.memory_status)}
+            </span>
+          </div>
+          <p className="source-content">{source.content}</p>
+          <details className="source-identifiers">
+            <summary>Source details</summary>
+            <dl>
+              <dt>Interaction ID</dt>
+              <dd>{source.id}</dd>
+              <dt>Memory document ID</dt>
+              <dd>{source.memory_document_id || "Not assigned"}</dd>
+            </dl>
+          </details>
+        </Modal>
+      )}
+      {healthOpen && (
+        <Modal
+          title="Memory & service health"
+          onClose={() => setHealthOpen(false)}
+        >
+          <p className="modal-description">
+            Live health checks, not a guarantee that a model request will
+            complete.
+          </p>
+          <dl className="health-list">
+            <dt>Hindsight</dt>
+            <dd>
+              {memoryStatus === "online"
+                ? "Connected"
+                : memoryStatus === "checking"
+                  ? "Checking…"
+                  : "Unavailable"}
+            </dd>
+            <dt>PostgreSQL / API database check</dt>
+            <dd>{dbStatus}</dd>
+            <dt>Ollama</dt>
+            <dd>
+              Not independently checked — no model health endpoint exposed.
+            </dd>
+          </dl>
+          <button className="button" onClick={() => void showHealth()}>
+            Recheck services
+          </button>
+        </Modal>
+      )}
       {evidence && (
         <Modal title="Behind the answer" onClose={() => setEvidence(null)}>
           <p className="modal-description">
-            Original facts returned by Hindsight. Source metadata is shown
-            exactly as supplied by the API.
+            See the memories behind Rosy's response. Original facts returned by
+            Hindsight; source metadata is shown exactly as supplied by the API.
           </p>
           <div className="evidence-list">
             {evidence.map((item, index) => (

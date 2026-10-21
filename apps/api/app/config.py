@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     ollama_num_ctx: int = 16384
     ollama_reasoning_effort: str | None = None
     ollama_fallback_model: str = "gemma3:4b"
+    tts_provider: str = "kokoro"
+    tts_base_url: str = "http://localhost:7860"
+    tts_model: str = "kokoro"
+    tts_voice: str = "af_heart"
+    tts_timeout_seconds: float = 60.0
 
 
 @lru_cache

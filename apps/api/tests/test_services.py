@@ -4,6 +4,7 @@ import pytest
 
 from app.services.llm import InvalidLLMResponseError, OllamaService
 from app.services.hindsight_memory import HindsightMemoryService, MemoryEvidence, MemoryUnavailableError
+from app.services.novadesk import detect_customer_tone, novadesk_prompt
 
 
 class FakeResponse:
@@ -85,3 +86,25 @@ async def test_retain_verification_requires_evidence_from_the_interaction(
         query="What did Ravi say?",
         source_interaction_id="interaction-other",
     )
+
+
+def test_nova_detects_customer_tone_without_exposing_it() -> None:
+    mode, instruction = detect_customer_tone(
+        "I paid over 2 lakhs and now it is lagging. This is unacceptable!"
+    )
+
+    assert mode == "frustrated_customer"
+    assert "empathy" in instruction.lower()
+
+    prompt = novadesk_prompt(
+        "Can you guarantee every AI model will launch smoothly?",
+        [],
+        {"name": "Rahul", "budget": "2.5 lakh", "apps": "Android Studio, Python, Ollama"},
+    )
+    assert "Detected tone mode:" in prompt
+    assert "cautious_customer" in prompt
+    assert "Do not announce" in prompt
+    assert "acknowledge the customer" in prompt
+    assert "That's a power-user setup" in prompt
+    assert "what model sizes they plan to run" in prompt
+    assert "under 85 words" in prompt

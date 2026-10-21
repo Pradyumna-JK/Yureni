@@ -12,13 +12,62 @@ stakeholders, source timeline, and evidence inspection to the live API.
 
 The interface includes a recording focus mode, three Intro Studio title frames,
 and a reusable SVG brand mark. See [the recording guide](docs/RECORDING.md).
-Frontend verification: `npm --workspace @dealmind/web test` (9 tests) and
+Frontend verification: `npm --workspace @dealmind/web test` (19 tests) and
 `npm run build:web` (TypeScript plus production build).
 
-Current limitations: the Memory view lists source interactions, not an exhaustive
-Hindsight memory bank. Actual recalled facts are accessible through answer evidence.
+Current limitations: the Memory view combines source interactions with topic groups
+from the current answer/assessment evidence, not an exhaustive Hindsight memory
+bank or a knowledge-graph export. Actual recalled facts and identifiers are inspectable.
 Risk scoring still uses keyword signals, can count resolved concerns, and is not
 a calibrated loss probability. Cross-deal retrieval is not implemented.
+
+### Rosy's memory-led frontend
+
+DealMind is the product; **Rosy** is its AI deal-memory agent. The redesign keeps
+the existing API and backend architecture unchanged:
+
+- Command Center is a separate operating dashboard: portfolio metrics, live
+  portfolio pressure, memory coverage, accounts-to-inspect queue, stage/value
+  lanes, a Rosy focus card, demo workflow actions, and recent portfolio movement.
+  It does not repeat the Deal Detail cards. Selecting a lane or queue account
+  opens the focused account workspace.
+- Ask Rosy: real answers, previous/current/change fields when returned, and
+  Hindsight supporting memories with expandable source identifiers.
+- Memory constellation: keyword topic grouping of returned evidence only. Topics
+  can overlap; their counts are not additive. This is a frontend visualization,
+  not Hindsight's internal retrieval graph. It starts empty until evidence arrives.
+- Dedicated Deals, Timeline, Stakeholders, and Insights views. Stakeholder context
+  asks about that person's changing concerns instead of inventing concern fields.
+- Rosy's Insight and next move use the real assessment response, with the
+  heuristic-risk disclaimer preserved.
+- Capture the moment uses the existing interaction form. A memory-captured
+  confirmation appears only when the API reports `memory_status: succeeded`.
+- The connection panel checks Hindsight and the API's database health endpoint.
+  Ollama is explicitly unverified because no separate model health endpoint exists.
+
+The exact user-supplied Rosy portrait is preserved in `apps/web/public/rosy.png`
+and reused through `apps/web/src/components/Rosy.tsx`. No replacement image was
+generated. Responsive styles are in `apps/web/src/redesign.css`; reduced-motion
+preferences, keyboard controls, native dialogs, focus mode, and Intro Studio remain.
+Answer/assessment UI state is session-local; refreshing the page clears that view,
+not the persistent memory stored by Hindsight.
+
+Local preview: `npm --workspace @dealmind/web run dev -- --host 127.0.0.1 --port 5174`.
+Keep the API and memory/model services running for real questions. Automated
+regressions cover the distinct Command Center, temporal fields, evidence nodes,
+source navigation, Rosy's asset, stakeholder questions, risk disclaimers, health
+checks, and retention confirmation, in addition to the original workflows. Tests
+mock API responses only inside tests; the application does not use mock data.
+
+Redesign verification (2026-10-10): TypeScript, 19 frontend tests, production
+build, whitespace checks, and browser checks passed. Browser checks against the
+local API covered the live Command Center dashboard, memory health, deal data,
+a typed Ravi question, a temporal question with three returned memories, source
+identifiers, topic evidence dialogs, assessments, health, and all navigation views.
+Mobile (390px) and tablet (768px) had no horizontal overflow; desktop was checked
+at 1440px. Interaction capture was regression-tested with mocked responses rather
+than adding another test interaction to the live account. The live assessment
+still demonstrated the existing resolved-concern risk limitation described above.
 
 ### Completed
 

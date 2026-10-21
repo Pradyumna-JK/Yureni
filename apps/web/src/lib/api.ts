@@ -52,6 +52,23 @@ export interface Intelligence {
   risk_score: number;
   risk_factors: string[];
 }
+export interface VoiceAgentResponse {
+  agent: string;
+  mode: "customer_rep";
+  reply: string;
+  suggested_next_question: string;
+  grounded_in: string[];
+}
+export interface CustomerProfile {
+  name?: string;
+  location?: string;
+  role?: string;
+  budget?: string;
+  apps?: string;
+  storage?: string;
+  use_case?: string;
+  concern?: string;
+}
 export const api = axios.create({ baseURL: "/api", timeout: 660_000 });
 export const dateLabel = (value?: string | null) =>
   value

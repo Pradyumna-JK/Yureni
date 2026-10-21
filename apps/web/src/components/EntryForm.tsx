@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { api, errorMessage, type Deal } from "../lib/api";
+import { api, errorMessage, type Deal, type Interaction } from "../lib/api";
 import { Modal } from "./Modal";
 
 export function EntryForm({
@@ -11,7 +11,7 @@ export function EntryForm({
   kind: "create" | "ingest";
   deal?: Deal;
   onClose: () => void;
-  onSaved: (id?: string) => void;
+  onSaved: (id?: string, retained?: boolean) => void;
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -31,13 +31,16 @@ export function EntryForm({
         });
         onSaved(data.id);
       } else {
-        await api.post(`/deals/${deal!.id}/interactions`, {
-          subject: form.get("subject"),
-          interaction_type: form.get("type"),
-          content: form.get("content"),
-          occurred_at: new Date(String(form.get("date"))).toISOString(),
-        });
-        onSaved();
+        const { data } = await api.post<Interaction>(
+          `/deals/${deal!.id}/interactions`,
+          {
+            subject: form.get("subject"),
+            interaction_type: form.get("type"),
+            content: form.get("content"),
+            occurred_at: new Date(String(form.get("date"))).toISOString(),
+          },
+        );
+        onSaved(undefined, data.memory_status === "succeeded");
       }
     } catch (err) {
       const message = errorMessage(err);
@@ -50,18 +53,14 @@ export function EntryForm({
   }
   return (
     <Modal
-      title={
-        kind === "create"
-          ? "A new opportunity"
-          : `Add context to ${deal?.company.name}`
-      }
+      title={kind === "create" ? "A new opportunity" : "Capture the moment"}
       onClose={saving ? () => {} : onClose}
     >
       <form className="entry-form" onSubmit={submit}>
         <p className="modal-description">
           {kind === "create"
             ? "Start with the account. Build the story as you go."
-            : "Add a meeting, email, or note. DealMind will retain it in persistent memory."}
+            : `Add what happened at ${deal?.company.name}. Include who was involved, what changed, and the context Rosy should remember.`}
         </p>
         {kind === "create" ? (
           <>

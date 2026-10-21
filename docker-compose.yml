@@ -51,6 +51,10 @@ services:
       OLLAMA_NUM_CTX: ${OLLAMA_NUM_CTX:-16384}
       OLLAMA_REASONING_EFFORT: ${OLLAMA_REASONING_EFFORT-low}
       OLLAMA_FALLBACK_MODEL: ${OLLAMA_FALLBACK_MODEL:-gemma3:4b}
+      TTS_PROVIDER: ${TTS_PROVIDER:-kokoro}
+      TTS_BASE_URL: ${TTS_BASE_URL:-http://kokoro-tts:7860}
+      TTS_MODEL: ${TTS_MODEL:-kokoro}
+      TTS_VOICE: ${TTS_VOICE:-af_heart}
     ports:
       - "8000:8000"
     depends_on:
@@ -58,8 +62,20 @@ services:
         condition: service_healthy
       hindsight:
         condition: service_started
+      kokoro-tts:
+        condition: service_started
+    restart: unless-stopped
+
+  kokoro-tts:
+    image: hangrylabs/kokorotts:v1.0
+    platform: linux/amd64
+    ports:
+      - "7860:7860"
+    volumes:
+      - kokoro_tts_data:/app/persistent
     restart: unless-stopped
 
 volumes:
   dealmind_postgres_data:
   hindsight_data:
+  kokoro_tts_data:

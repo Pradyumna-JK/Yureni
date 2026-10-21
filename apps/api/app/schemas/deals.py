@@ -109,3 +109,17 @@ class IntelligenceResponse(BaseModel):
     confidence: str
     risk_score: int = Field(ge=0, le=100)
     risk_factors: list[str] = Field(default_factory=list)
+
+
+class VoiceAgentRequest(BaseModel):
+    message: str = Field(min_length=2, max_length=2_000)
+    conversation: list[str] = Field(default_factory=list, max_length=24)
+    customer_profile: dict[str, str] = Field(default_factory=dict)
+
+
+class VoiceAgentResponse(BaseModel):
+    agent: str
+    mode: str
+    reply: str
+    suggested_next_question: str
+    grounded_in: list[str] = Field(default_factory=list)

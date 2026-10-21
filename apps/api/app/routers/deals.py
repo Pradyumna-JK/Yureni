@@ -20,10 +20,13 @@ from app.schemas.deals import (
     InteractionRead,
     StakeholderRead,
     TimelineItem,
+    VoiceAgentRequest,
+    VoiceAgentResponse,
 )
 from app.services.llm import InvalidLLMResponseError, LLMUnavailableError, OllamaService
 from app.services.answers import answer_question, as_evidence
 from app.services.hindsight_memory import HindsightMemoryService, MemoryEvidence, MemoryUnavailableError
+from app.services.novadesk import answer_novadesk
 from app.services.risk import health_for_score, score_risk
 
 router = APIRouter(prefix="/api/deals", tags=["deals"])
@@ -254,6 +257,22 @@ async def deal_intelligence(
         risk_factors=risk_factors,
         **result,
     )
+
+
+@router.post("/voice/novadesk", response_model=VoiceAgentResponse)
+async def novadesk_voice_agent(
+    payload: VoiceAgentRequest,
+    settings: Settings = Depends(get_settings),
+) -> VoiceAgentResponse:
+    try:
+        return await answer_novadesk(
+            OllamaService(settings),
+            payload.message,
+            payload.conversation,
+            payload.customer_profile,
+        )
+    except (LLMUnavailableError, InvalidLLMResponseError) as error:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(error)) from error
 
 
 def format_memory_content(deal: Deal, interaction: Interaction) -> str:
